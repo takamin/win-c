@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project( win-c )
+set(SOURCES source/getopt.c)
+include_directories( include )
+add_library(libwinc ${SOURCES})
+add_executable(test test/test.cpp)
+target_link_libraries(test libwinc)
