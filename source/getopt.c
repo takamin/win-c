@@ -58,6 +58,7 @@ int getopt(int argc, char* const argv[],
                 ++optind;
                 nextchar = 0;
             }
+            optarg = 0;
         } else {
             nextchar++;
             if(*(argv[optind] + nextchar) != '\0') {
