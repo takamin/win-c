@@ -6,12 +6,13 @@
  * Released under the MIT license
  * https://github.com/takamin/win-c/blob/master/LICENSE
  */
+#include <stdio.h>
 #include <string.h>
 #include "getopt.h"
 
 char* optarg = 0;
 int optind = 1;
-int opterr = 0;
+int opterr = 1;
 int optopt = 0;
 
 int getopt(int argc, char* const argv[],
@@ -42,8 +43,13 @@ int getopt(int argc, char* const argv[],
         }
         optptr = strchr(optstring, c);
         if(optptr == NULL) {
-            ++optarg;
-            nextchar = 0;
+            optopt = c;
+            if(opterr) {
+                fprintf(stderr,
+                        "%s : unknown option '%c'.\n",
+                        argv[0], c);
+            }
+            ++nextchar;
             return '?';
         }
         if(*(optptr+1) != ':') {
@@ -61,6 +67,12 @@ int getopt(int argc, char* const argv[],
                 if(optind < argc) {
                     optarg = argv[optind];
                 } else {
+                    optopt = c;
+                    if(opterr) {
+                        fprintf(stderr,
+                                "%s : argument required for option '%c'.\n",
+                                argv[0], c);
+                    }
                     if(optstring[0] == ':') {
                         c = ':';
                     } else {
