@@ -38,6 +38,6 @@ int main(int argc, char* argv[]) {
     } while(opt >= 0);
     cout << "non option parameter ---- " << endl;
     for(int i = 0; optind + i < argc; i++) {
-        cout << "argv[optind+" << i << "]=" << argv[optind + i];
+        cout << "argv[optind+" << i << "]=" << argv[optind + i] << endl;
     }
 }
