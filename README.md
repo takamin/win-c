@@ -13,7 +13,6 @@ __関数__
 関数の動作は、[POSIXのgetopt](http://linuxjm.sourceforge.jp/html/LDP_man-pages/man3/getopt.3.html)にあわせているつもりです。
 
 * オプションは1文字だけです。長いオプション名には対応していません。
-* optstring の先頭が '-' である場合の動作は正しくありません。
 
 ### 使用例
 

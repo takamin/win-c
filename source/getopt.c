@@ -52,15 +52,7 @@ int getopt(int argc, char* const argv[],
             continue;
         }
         if(nextchar == 0) {
-            if(optstring[0] != '+') {
-                /*************************
-                if(optstring[0] == '-') {
-                    optarg = argv[optind];
-                    nextchar = 0;
-                    ++optind;
-                    return 1;
-                }
-                *************************/
+            if(optstring[0] != '+' && optstring[0] != '-') {
                 while(c != '-') {
                     /* postpone non-opt parameter */
                     if(!postpone_noopt(argc, argv, optind)) {
@@ -71,6 +63,12 @@ int getopt(int argc, char* const argv[],
                 }
             }
             if(c != '-') {
+                if(optstring[0] == '-') {
+                    optarg = argv[optind];
+                    nextchar = 0;
+                    ++optind;
+                    return 1;
+                }
                 break;
             } else {
                 if(strcmp(argv[optind], "--") == 0) {

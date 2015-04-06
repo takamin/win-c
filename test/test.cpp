@@ -26,10 +26,14 @@ int main(int argc, char* argv[]) {
         if(opt < 0) {
             cout << "opt=" << "(END OF GETOPT)";
         } else {
-            cout << "opt=" << "'" << (char)opt << "'";
+            if(opt == 1) {
+                cout << "opt=" << "1";
+            } else {
+                cout << "opt=" << "'" << (char)opt << "'";
+            }
             if(opt != '?' && opt != ':') {
                 char* optptr = strchr(optstring, opt);
-                if(optptr != 0 && *(optptr+1) == ':') {
+                if(opt == 1 || optptr != 0 && *(optptr+1) == ':') {
                     cout << " optarg=\"" << optarg << "\"";
                 }
             }
