@@ -40,8 +40,8 @@ int getopt(int argc, char* const argv[],
     static int postpone_count = 0;
     static int nextchar = 0;
     while(1) {
-		int c;
-		const char* optptr = 0;
+        int c;
+        const char* optptr = 0;
         if(optind >= argc - postpone_count) {
             break;
         }
@@ -109,11 +109,12 @@ int getopt(int argc, char* const argv[],
                     optopt = c;
                     if(opterr) {
                         fprintf(stderr,
-                                "%s: option requires an argument -- %c\n",
-                                argv[0], c);
+                            "%s: option requires an argument -- %c\n",
+                            argv[0], c);
                     }
-                    if(optstring[0] == ':'
-                            || (optstring[0] == '-' || optstring[0] == '+') && optstring[1] == ':')
+                    if(optstring[0] == ':' ||
+                        (optstring[0] == '-' || optstring[0] == '+') &&
+                        optstring[1] == ':')
                     {
                         c = ':';
                     } else {
