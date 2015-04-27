@@ -84,7 +84,7 @@ int getopt(int argc, char* const argv[],
             optopt = c;
             if(opterr) {
                 fprintf(stderr,
-                        "%s : unknown option '%c'.\n",
+                        "%s: invalid option -- %c\n",
                         argv[0], c);
             }
             ++nextchar;
@@ -109,7 +109,7 @@ int getopt(int argc, char* const argv[],
                     optopt = c;
                     if(opterr) {
                         fprintf(stderr,
-                                "%s : argument required for option '%c'.\n",
+                                "%s: option requires an argument -- %c\n",
                                 argv[0], c);
                     }
                     if(optstring[0] == ':'
