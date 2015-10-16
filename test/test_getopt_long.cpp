@@ -5,7 +5,16 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(_MSC_VER)
+
+#include "getopt.h"
+
+#elif defined(_GCC)
+
 #include <getopt.h>
+
+#endif
 
 using namespace std;
 
@@ -103,8 +112,14 @@ int Arg::split(char const* in, vector<string>& argv)
                 inword = false;
                 argv.push_back(ss.str());
                 ss.str("");
+                argc++;
             }
         }
+    }
+    if(ss.str() != "") {
+        argv.push_back(ss.str());
+        ss.str("");
+        argc++;
     }
     return argc;
 }
@@ -128,7 +143,7 @@ int main(int argc, char* argv[]) {
     };
     int longindex = 0;
     int opt = 0;
-    Arg test01arg("a.out --aaa --bbb --ccc");
+    Arg test01arg("a.out --aa --bbb --c");
     opt = getopt_long(test01arg.count(), test01arg.values(), "abc", opt01, &longindex);
     TEST_EQUAL(opt, 'a');
     TEST_EQUAL(longindex, 0);
