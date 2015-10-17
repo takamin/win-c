@@ -34,8 +34,9 @@ static int postpone_noopt(int argc, char* const argv[], int index) {
     }
     return 0;
 }
-int getopt(int argc, char* const argv[],
-            const char* optstring)
+static int _getopt_(int argc, char* const argv[],
+        const char* optstring,
+        const struct option* longopts, int* longindex)
 {
     static int postpone_count = 0;
     static int nextchar = 0;
@@ -76,6 +77,81 @@ int getopt(int argc, char* const argv[],
                     break;
                 }
                 ++nextchar;
+                if(longopts != 0 && *(argv[optind] + nextchar) == '-') {
+                    char const* spec_long = argv[optind] + nextchar + 1;
+                    int spec_len = 0;
+                    char const* pos_eq = strchr(spec_long, '=');
+                    if(pos_eq == NULL) {
+                        spec_len = strlen(spec_long);
+                    } else {
+                        spec_len = pos_eq - spec_long;
+                    }
+                    int index_search = 0;
+                    int index_found = -1;
+                    const struct option* optdef = 0;
+                    while(longopts->name != 0) {
+                        if(strncmp(spec_long, longopts->name, spec_len) == 0) {
+                            if(optdef != 0) {
+                                break;
+                            }
+                            optdef = longopts;
+                            index_found = index_search;
+                        }
+                        longopts++;
+                        index_search++;
+                    }
+                    if(longopts->name != 0) {
+                        if(opterr) {
+                            fprintf(stderr, "ambiguous option: %s\n", spec_long);
+                        }
+                        return '?';
+                    }
+                    if(optdef == 0) {
+                        if(opterr) {
+                            fprintf(stderr, "no such a option: %s\n", spec_long);
+                        }
+                        return '?';
+                    }
+                    if(optdef->has_arg == no_argument && pos_eq > 0) {
+                        if(opterr) {
+                            fprintf(stderr, "no such a option: %s\n", spec_long);
+                        }
+                        return '?';
+                    }
+                    switch(optdef->has_arg) {
+                        case no_argument:
+                            optarg = 0;
+                            break;
+                        case required_argument:
+                            if(pos_eq == NULL) {
+                                ++optind;
+                                if(strcmp(argv[optind], "=") == 0) {
+                                    optarg = argv[++optind];
+                                } else if(strncmp(argv[optind], "=", 1) == 0) {
+                                    optarg = argv[optind] + 1;
+                                } else {
+                                    optarg = argv[optind];
+                                }
+                            } else {
+                                if(*(argv[optind] + spec_len + 1) == '\0') {
+                                    optarg = argv[++optind];
+                                } else {
+                                    optarg = argv[optind] + spec_len + 1;
+                                }
+                            }
+                            break;
+                    }
+                    ++optind;
+                    nextchar = 0;
+                    if(longindex != 0) {
+                        *longindex = index_found;
+                    }
+                    if(optdef->flag != 0) {
+                        *optdef->flag = optdef->val;
+                        return 0;
+                    }
+                    return optdef->val;
+                }
                 continue;
             }
         }
@@ -141,13 +217,18 @@ int getopt(int argc, char* const argv[],
     return -1;
 }
 
-/********************************************************
+int getopt(int argc, char* const argv[],
+            const char* optstring)
+{
+    return _getopt_(argc, argv, optstring, 0, 0);
+}
 int getopt_long(int argc, char* const argv[],
         const char* optstring,
         const struct option* longopts, int* longindex)
 {
-    return -1;
+    return _getopt_(argc, argv, optstring, longopts, longindex);
 }
+/********************************************************
 int getopt_long_only(int argc, char* const argv[],
         const char* optstring,
         const struct option* longopts, int* longindex)

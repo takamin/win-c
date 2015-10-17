@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <string>
 #include <string.h>
@@ -21,6 +22,7 @@ using namespace std;
 class Arg {
 public:
     Arg(char const* command_line) : argc(0), argv(0) {
+        cout << "*** " << command_line << endl;
         vector<string> elements;
         this->argc = Arg::split(command_line, elements);
         if(this->argc == 0) {
@@ -123,35 +125,78 @@ int Arg::split(char const* in, vector<string>& argv)
     }
     return argc;
 }
-static void test_equal(char const* name, int A, int B, bool condition) {
-    if(condition) {
+static void test_equal(char const* name, char const* A, char const* B) {
+    if(A == B || A != 0 && string(A) == string(B)) {
+        cout << "PASS ( " << name << " )" << endl;
+    } else {
+        cout << "PASS ( " << name << " )" << endl;
+    }
+}
+static void test_equal(char const* name, int A, int B) {
+    if(A == B) {
         cout << "PASS ( " << name << " )" << A << "==" << B << endl;
     } else {
         cout << "FAIL ( " << name << " )" << A << "!=" << B << endl;
     }
 }
-#define TEST_EQUAL(A,B) test_equal("" #A " == " #B, A, B, A==B)
+#define TEST_EQUAL(A,B) test_equal("" #A " == " #B, A, B)
 int main(int argc, char* argv[]) {
     vector<string> elements;
     Arg test_arg("A\\'B\\'C \"D\\\"E\\\"F\" 'G\\H\\I' ");
 
     struct option opt01[] = {
         {"aaa", no_argument, NULL, 'a', },
+        {"ddd", required_argument, NULL, 'd', },
         {"bbb", no_argument, NULL, 'b', },
+        {"fff", required_argument, NULL, 'f', },
         {"ccc", no_argument, NULL, 'c', },
+        {"eee", required_argument, NULL, 'e', },
         { NULL, 0, NULL, 0, },
     };
     int longindex = 0;
     int opt = 0;
     Arg test01arg("a.out --aa --bbb --c");
-    opt = getopt_long(test01arg.count(), test01arg.values(), "abc", opt01, &longindex);
+    opt = getopt_long(test01arg.count(), test01arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'a');
     TEST_EQUAL(longindex, 0);
-    opt = getopt_long(test01arg.count(), test01arg.values(), "abc", opt01, &longindex);
+    TEST_EQUAL(optarg, 0);
+    opt = getopt_long(test01arg.count(), test01arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'b');
-    TEST_EQUAL(longindex, 1);
-    opt = getopt_long(test01arg.count(), test01arg.values(), "abc", opt01, &longindex);
-    TEST_EQUAL(opt, 'c');
     TEST_EQUAL(longindex, 2);
+    TEST_EQUAL(optarg, 0);
+    opt = getopt_long(test01arg.count(), test01arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'c');
+    TEST_EQUAL(longindex, 4);
+    TEST_EQUAL(optarg, 0);
+
+    optarg = 0;
+    optind = 1;
+    opterr = 1;
+    optopt = 0;
+    Arg test02arg("a.out --ee --aa --f=XXX --f= XYZ --bbb --ddd =YYY --ddd = ZZZ");
+    opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'e');
+    TEST_EQUAL(longindex, 5);
+    TEST_EQUAL(optarg, "-aa");
+    opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'f');
+    TEST_EQUAL(longindex, 3);
+    TEST_EQUAL(optarg, "XXX");
+    opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'f');
+    TEST_EQUAL(longindex, 3);
+    TEST_EQUAL(optarg, "XYZ");
+    opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'b');
+    TEST_EQUAL(longindex, 2);
+    TEST_EQUAL(optarg, "YYY");
+    opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'd');
+    TEST_EQUAL(longindex, 1);
+    TEST_EQUAL(optarg, "YYY");
+    opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
+    TEST_EQUAL(opt, 'd');
+    TEST_EQUAL(longindex, 1);
+    TEST_EQUAL(optarg, "ZZZ");
     return 0;
 }
