@@ -5,14 +5,13 @@ C/C++から使えるWindowsのコンソールアプリケーション用のラ�
 
 __関数__
 
-* getopt() - コマンドラインオプション解析
+* `getopt() / getopt_long()` - コマンドラインオプション解析
 
+## `getopt() / getopt_long()` - コマンドラインオプション解析
 
-## getopt() - コマンドラインオプション解析
+関数の仕様は、[POSIXのgetopt](http://linuxjm.sourceforge.jp/html/LDP_man-pages/man3/getopt.3.html)を参照してください。
 
-関数の動作は、[POSIXのgetopt](http://linuxjm.sourceforge.jp/html/LDP_man-pages/man3/getopt.3.html)にあわせているつもりです。
-
-* オプションは1文字だけです。長いオプション名には対応していません。
+* 長いオプションの`optional_argument` と `getopt_long_only()`は、対応していません。
 
 ### 使用例
 
