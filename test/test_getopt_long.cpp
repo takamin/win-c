@@ -10,12 +10,15 @@
 #if defined(_MSC_VER)
 
 #include "getopt.h"
+extern "C" int postpone_count;
+extern "C" int nextchar;
 
-#elif defined(_GCC)
+#else
 
 #include <getopt.h>
 
 #endif
+
 
 using namespace std;
 
@@ -125,25 +128,28 @@ int Arg::split(char const* in, vector<string>& argv)
     }
     return argc;
 }
+int pass_count = 0;
+int fail_count = 0;
 static void test_equal(char const* name, char const* A, char const* B) {
-    if(A == B || A != 0 && string(A) == string(B)) {
+    if(A == B || A != 0 && B != 0 && string(A) == string(B)) {
+        pass_count++;
         cout << "PASS ( " << name << " )" << endl;
     } else {
-        cout << "PASS ( " << name << " )" << endl;
+        fail_count++;
+        cout << "FAIL ( " << name << " )" << endl;
     }
 }
 static void test_equal(char const* name, int A, int B) {
     if(A == B) {
+        pass_count++;
         cout << "PASS ( " << name << " )" << A << "==" << B << endl;
     } else {
+        fail_count++;
         cout << "FAIL ( " << name << " )" << A << "!=" << B << endl;
     }
 }
 #define TEST_EQUAL(A,B) test_equal("" #A " == " #B, A, B)
 int main(int argc, char* argv[]) {
-    vector<string> elements;
-    Arg test_arg("A\\'B\\'C \"D\\\"E\\\"F\" 'G\\H\\I' ");
-
     struct option opt01[] = {
         {"aaa", no_argument, NULL, 'a', },
         {"ddd", required_argument, NULL, 'd', },
@@ -177,26 +183,36 @@ int main(int argc, char* argv[]) {
     opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'e');
     TEST_EQUAL(longindex, 5);
-    TEST_EQUAL(optarg, "-aa");
+    TEST_EQUAL(optarg, "--aa");
+    TEST_EQUAL(test02arg.values()[optind], "--f=XXX");
     opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'f');
     TEST_EQUAL(longindex, 3);
     TEST_EQUAL(optarg, "XXX");
+    TEST_EQUAL(test02arg.values()[optind], "--f=");
     opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'f');
     TEST_EQUAL(longindex, 3);
-    TEST_EQUAL(optarg, "XYZ");
+    TEST_EQUAL(optarg, "");
+    TEST_EQUAL(test02arg.values()[optind], "XYZ");
     opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'b');
     TEST_EQUAL(longindex, 2);
-    TEST_EQUAL(optarg, "YYY");
+    TEST_EQUAL(optarg, 0);
+    TEST_EQUAL(test02arg.values()[optind], "--ddd");
     opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'd');
     TEST_EQUAL(longindex, 1);
-    TEST_EQUAL(optarg, "YYY");
+    TEST_EQUAL(optarg, "=YYY");
+    TEST_EQUAL(test02arg.values()[optind], "--ddd");
     opt = getopt_long(test02arg.count(), test02arg.values(), "abcdef", opt01, &longindex);
     TEST_EQUAL(opt, 'd');
     TEST_EQUAL(longindex, 1);
-    TEST_EQUAL(optarg, "ZZZ");
-    return 0;
+    TEST_EQUAL(optarg, "=");
+    TEST_EQUAL(test02arg.values()[optind], "ZZZ");
+
+    printf("TEST RESULT: PASS %d(%.2f%%), FAIL %d(%.2f%%)\n",
+         pass_count, 100.0 * pass_count/(pass_count + fail_count),
+         fail_count, 100.0 * fail_count/(pass_count + fail_count));
+	return 0;
 }

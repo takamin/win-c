@@ -15,6 +15,9 @@ int optind = 1;
 int opterr = 1;
 int optopt = 0;
 
+int postpone_count = 0;
+int nextchar = 0;
+
 static void postpone(int argc, char* const argv[], int index) {
     char** nc_argv = (char**)argv;
     char* p = nc_argv[index];
@@ -38,12 +41,12 @@ static int _getopt_(int argc, char* const argv[],
         const char* optstring,
         const struct option* longopts, int* longindex)
 {
-    static int postpone_count = 0;
-    static int nextchar = 0;
     while(1) {
         int c;
         const char* optptr = 0;
         if(optind >= argc - postpone_count) {
+            c = 0;
+            optarg = 0;
             break;
         }
         c = *(argv[optind] + nextchar);
@@ -77,22 +80,20 @@ static int _getopt_(int argc, char* const argv[],
                     break;
                 }
                 ++nextchar;
-                if(longopts != 0 && *(argv[optind] + nextchar) == '-') {
-                    char const* spec_long = argv[optind] + nextchar + 1;
-                    int spec_len = 0;
+                if(longopts != 0 && *(argv[optind] + 1) == '-') {
+                    char const* spec_long = argv[optind] + 2;
                     char const* pos_eq = strchr(spec_long, '=');
-                    if(pos_eq == NULL) {
-                        spec_len = strlen(spec_long);
-                    } else {
-                        spec_len = pos_eq - spec_long;
-                    }
+                    int spec_len = (pos_eq == NULL ? strlen(spec_long) : pos_eq - spec_long);
                     int index_search = 0;
                     int index_found = -1;
                     const struct option* optdef = 0;
                     while(longopts->name != 0) {
                         if(strncmp(spec_long, longopts->name, spec_len) == 0) {
                             if(optdef != 0) {
-                                break;
+                                if(opterr) {
+                                    fprintf(stderr, "ambiguous option: %s\n", spec_long);
+                                }
+                                return '?';
                             }
                             optdef = longopts;
                             index_found = index_search;
@@ -100,19 +101,7 @@ static int _getopt_(int argc, char* const argv[],
                         longopts++;
                         index_search++;
                     }
-                    if(longopts->name != 0) {
-                        if(opterr) {
-                            fprintf(stderr, "ambiguous option: %s\n", spec_long);
-                        }
-                        return '?';
-                    }
                     if(optdef == 0) {
-                        if(opterr) {
-                            fprintf(stderr, "no such a option: %s\n", spec_long);
-                        }
-                        return '?';
-                    }
-                    if(optdef->has_arg == no_argument && pos_eq > 0) {
                         if(opterr) {
                             fprintf(stderr, "no such a option: %s\n", spec_long);
                         }
@@ -121,23 +110,19 @@ static int _getopt_(int argc, char* const argv[],
                     switch(optdef->has_arg) {
                         case no_argument:
                             optarg = 0;
+                            if(pos_eq != 0) {
+                                if(opterr) {
+                                    fprintf(stderr, "no argument for %s\n", optdef->name);
+                                }
+                                return '?';
+                            }
                             break;
                         case required_argument:
                             if(pos_eq == NULL) {
                                 ++optind;
-                                if(strcmp(argv[optind], "=") == 0) {
-                                    optarg = argv[++optind];
-                                } else if(strncmp(argv[optind], "=", 1) == 0) {
-                                    optarg = argv[optind] + 1;
-                                } else {
-                                    optarg = argv[optind];
-                                }
+                                optarg = argv[optind];
                             } else {
-                                if(*(argv[optind] + spec_len + 1) == '\0') {
-                                    optarg = argv[++optind];
-                                } else {
-                                    optarg = argv[optind] + spec_len + 1;
-                                }
+                                optarg = pos_eq + 1;
                             }
                             break;
                     }
