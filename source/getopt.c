@@ -122,7 +122,7 @@ static int _getopt_(int argc, char* const argv[],
                                 ++optind;
                                 optarg = argv[optind];
                             } else {
-                                optarg = pos_eq + 1;
+                                optarg = (char*)pos_eq + 1;
                             }
                             break;
                     }
