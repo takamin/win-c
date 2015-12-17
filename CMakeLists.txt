@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project( win-c )
-set(SOURCES source/getopt.c)
+set(SOURCES
+    source/getopt.c
+    source/TimerThread.cpp)
 include_directories( include )
 add_library(libwinc ${SOURCES})
 add_executable(testLibwinc test/test.cpp)
