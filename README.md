@@ -29,8 +29,7 @@ int main(int argc, char* argv[]) {
     //  -d
     char const * optstring = "ab:c:d";
     int opt_a = 0;
-    char* opt:w
-    _b = 0;
+    char* opt_b = 0;
     char* opt_c = 0;
     int opt_d = 0;
 
